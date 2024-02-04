@@ -1,6 +1,7 @@
-# ./tetris_base以下の全てのファイルを対象とする
-.tetris_base/*
-.vscode/*
+tetris
+
+# ./vscode
+.vscode
 
 # Executables
 *.out

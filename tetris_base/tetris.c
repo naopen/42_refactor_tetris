@@ -6,43 +6,12 @@
 /*   By: nkannan <nkannan@student.42tokyo.jp>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 20:16:01 by nkannan           #+#    #+#             */
-/*   Updated: 2024/02/04 20:16:02 by nkannan          ###   ########.fr       */
+/*   Updated: 2024/02/04 21:24:39 by nkannan          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <ncurses.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <time.h>
+#include "tetris.h"
 
-#define R 20
-#define C 15
-#define T 1
-#define F 0
-
-char			Table[R][C] = {0};
-int				final = 0;
-char			GameOn = T;
-suseconds_t		timer = 400000;
-int				decrease = 1000;
-
-typedef struct
-{
-	char		**array;
-	int width, row, col;
-}				Struct;
-Struct			current;
-
-const Struct	StructsArray[7] = {{(char *[]){(char[]){0, 1, 1}, (char[]){1, 1,
-		0}, (char[]){0, 0, 0}}, 3}, {(char *[]){(char[]){1, 1, 0}, (char[]){0,
-		1, 1}, (char[]){0, 0, 0}}, 3}, {(char *[]){(char[]){0, 1, 0},
-		(char[]){1, 1, 1}, (char[]){0, 0, 0}}, 3}, {(char *[]){(char[]){0, 0,
-		1}, (char[]){1, 1, 1}, (char[]){0, 0, 0}}, 3}, {(char *[]){(char[]){1,
-		0, 0}, (char[]){1, 1, 1}, (char[]){0, 0, 0}}, 3},
-		{(char *[]){(char[]){1, 1}, (char[]){1, 1}}, 2}, {(char *[]){(char[]){0,
-		0, 0, 0}, (char[]){1, 1, 1, 1}, (char[]){0, 0, 0, 0}, (char[]){0, 0, 0,
-		0}}, 4}};
 
 Struct	CloneShape(Struct shape)
 {
@@ -85,16 +54,16 @@ int	CanPlaceShape(Struct shape)
 	{
 		for (j = 0; j < shape.width; j++)
 		{
-			if ((shape.col + j < 0 || shape.col + j >= C || shape.row + i >= R))
+			if ((shape.col + j < 0 || shape.col + j >= BOARD_COLS || shape.row + i >= BOARD_ROWS))
 			{
 				if (array[i][j])
-					return (F);
+					return (FALSE);
 			}
 			else if (Table[shape.row + i][shape.col + j] && array[i][j])
-				return (F);
+				return (FALSE);
 		}
 	}
-	return (T);
+	return (TRUE);
 }
 
 void	RotateShape(Struct shape)
@@ -116,7 +85,7 @@ void	RotateShape(Struct shape)
 
 void	PrintTetrisBoard(void)
 {
-	char	Buffer[R][C] = {0};
+	char	Buffer[BOARD_ROWS][BOARD_COLS] = {0};
 
 	int i, j;
 	for (i = 0; i < current.width; i++)
@@ -128,12 +97,12 @@ void	PrintTetrisBoard(void)
 		}
 	}
 	clear();
-	for (i = 0; i < C - 9; i++)
+	for (i = 0; i < BOARD_COLS - 9; i++)
 		printw(" ");
 	printw("42 Tetris\n");
-	for (i = 0; i < R; i++)
+	for (i = 0; i < BOARD_ROWS; i++)
 	{
-		for (j = 0; j < C; j++)
+		for (j = 0; j < BOARD_COLS; j++)
 		{
 			printw("%c ", (Table[i][j] + Buffer[i][j]) ? '#' : '.');
 		}
@@ -161,9 +130,6 @@ int	main(void)
 	int		c;
 	Struct	new_shape;
 	Struct	temp;
-	Struct	new_shape;
-	Struct	temp;
-	Struct	new_shape;
 
 	srand(time(0));
 	final = 0;
@@ -171,13 +137,13 @@ int	main(void)
 	gettimeofday(&before_now, NULL);
 	set_timeout(1);
 	new_shape = CloneShape(StructsArray[rand() % 7]);
-	new_shape.col = rand() % (C - new_shape.width + 1);
+	new_shape.col = rand() % (BOARD_COLS - new_shape.width + 1);
 	new_shape.row = 0;
 	DestroyShape(current);
 	current = new_shape;
 	if (!CanPlaceShape(current))
 	{
-		GameOn = F;
+		GameOn = FALSE;
 	}
 	PrintTetrisBoard();
 	while (GameOn)
@@ -204,34 +170,34 @@ int	main(void)
 						}
 					}
 					int n, m, sum, count = 0;
-					for (n = 0; n < R; n++)
+					for (n = 0; n < BOARD_ROWS; n++)
 					{
 						sum = 0;
-						for (m = 0; m < C; m++)
+						for (m = 0; m < BOARD_COLS; m++)
 						{
 							sum += Table[n][m];
 						}
-						if (sum == C)
+						if (sum == BOARD_COLS)
 						{
 							count++;
 							int l, k;
 							for (k = n; k >= 1; k--)
-								for (l = 0; l < C; l++)
+								for (l = 0; l < BOARD_COLS; l++)
 									Table[k][l] = Table[k - 1][l];
-							for (l = 0; l < C; l++)
+							for (l = 0; l < BOARD_COLS; l++)
 								Table[k][l] = 0;
 							timer -= decrease--;
 						}
 					}
 					final += 100 * count;
 					new_shape = CloneShape(StructsArray[rand() % 7]);
-					new_shape.col = rand() % (C - new_shape.width + 1);
+					new_shape.col = rand() % (BOARD_COLS - new_shape.width + 1);
 					new_shape.row = 0;
 					DestroyShape(current);
 					current = new_shape;
 					if (!CanPlaceShape(current))
 					{
-						GameOn = F;
+						GameOn = FALSE;
 					}
 				}
 				break ;
@@ -277,33 +243,33 @@ int	main(void)
 						}
 					}
 					int n, m, sum, count = 0;
-					for (n = 0; n < R; n++)
+					for (n = 0; n < BOARD_ROWS; n++)
 					{
 						sum = 0;
-						for (m = 0; m < C; m++)
+						for (m = 0; m < BOARD_COLS; m++)
 						{
 							sum += Table[n][m];
 						}
-						if (sum == C)
+						if (sum == BOARD_COLS)
 						{
 							count++;
 							int l, k;
 							for (k = n; k >= 1; k--)
-								for (l = 0; l < C; l++)
+								for (l = 0; l < BOARD_COLS; l++)
 									Table[k][l] = Table[k - 1][l];
-							for (l = 0; l < C; l++)
+							for (l = 0; l < BOARD_COLS; l++)
 								Table[k][l] = 0;
 							timer -= decrease--;
 						}
 					}
 					new_shape = CloneShape(StructsArray[rand() % 7]);
-					new_shape.col = rand() % (C - new_shape.width + 1);
+					new_shape.col = rand() % (BOARD_COLS - new_shape.width + 1);
 					new_shape.row = 0;
 					DestroyShape(current);
 					current = new_shape;
 					if (!CanPlaceShape(current))
 					{
-						GameOn = F;
+						GameOn = FALSE;
 					}
 				}
 				break ;
@@ -331,9 +297,9 @@ int	main(void)
 	DestroyShape(current);
 	endwin();
 	int i, j;
-	for (i = 0; i < R; i++)
+	for (i = 0; i < BOARD_ROWS; i++)
 	{
-		for (j = 0; j < C; j++)
+		for (j = 0; j < BOARD_COLS; j++)
 		{
 			printf("%c ", Table[i][j] ? '#' : '.');
 		}
